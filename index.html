@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUẢN LÝ HỒ CÁ</title>
+
+    <style>
+        /* --- KHÓA CUỘN & TỰ ĐỘNG CO GIÃN THEO THIẾT BỊ --- */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #070f26, #0d1b3e, #132954);
+            font-family: Arial, Helvetica, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- MÀN HÌNH LOADING --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #040814;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-wrapper {
+            text-align: center;
+            position: relative;
+        }
+
+        .loading-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.2);
+            animation: float3D 3s ease-in-out infinite;
+        }
+
+        .spinner-ring {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 3px solid transparent;
+            border-top: 3px solid #38bdf8;
+            border-bottom: 3px solid #00f2fe;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #94a3b8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes float3D {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* --- CÁ BƠI --- */
+        .ocean-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .fish {
+            position: absolute;
+            font-size: 16px;
+            opacity: 0.15;
+            user-select: none;
+        }
+
+        .fish-l {
+            left: -50px;
+            transform: scaleX(-1);
+            animation: swimR linear infinite;
+        }
+
+        .fish-r {
+            right: -50px;
+            animation: swimL linear infinite;
+        }
+
+        @keyframes swimR {
+            0% {
+                left: -50px;
+            }
+
+            100% {
+                left: 105%;
+            }
+        }
+
+        @keyframes swimL {
+            0% {
+                right: -50px;
+            }
+
+            100% {
+                right: 105%;
+            }
+        }
+
+        .f1 {
+            top: 15%;
+            animation-duration: 16s;
+        }
+
+        .f2 {
+            top: 45%;
+            animation-duration: 20s;
+            animation-delay: 2s;
+        }
+
+        .f3 {
+            top: 80%;
+            animation-duration: 14s;
+            animation-delay: 4s;
+        }
+
+        /* --- KHUNG CHỨA (APP CONTAINER) --- */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100dvh;
+            padding: 2vh 12px;
+            box-sizing: border-box;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.5vh 14px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .flex-fixed {
+            flex-shrink: 0;
+        }
+
+        /* HEADER & STATUS */
+        .top-nav-zone {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 25px;
+            margin-bottom: 1vh;
+            flex-shrink: 0;
+        }
+
+        .mini-btn {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            font-size: 10px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .mini-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .mini-btn.danger {
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .mini-btn.danger:active {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge.offline {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .status-badge.online {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .pulse-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .status-badge.online .pulse-dot {
+            background-color: #34d399;
+            box-shadow: 0 0 8px #34d399;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.offline .pulse-dot {
+            background-color: #f87171;
+        }
+
+        /* 🛠️ THÔNG SỐ GRID */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 14px;
+            padding: 1.5vh 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        #clock {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        #date {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .metric-title {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00f2fe;
+            margin-top: 2px;
+        }
+
+        .metric-unit {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-left: 2px;
+        }
+
+        .status-text {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .status-on {
+            color: #fbbf24;
+            text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+        }
+
+        .status-off {
+            color: #64748b;
+        }
+
+        /* ĐÈN HỒ CÁ */
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5vh 14px;
+        }
+
+        /* NÚT TỰ ĐỘNG & THANH TRƯỢT */
+        .section-title {
+            font-size: 12px;
+            color: #38bdf8;
+            font-weight: bold;
+            margin-bottom: 1.5vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .slider-wrapper {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 1vh;
+            transition: all 0.3s ease;
+        }
+
+        .slider-value-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #38bdf8;
+            min-width: 50px;
+            text-align: left;
+        }
+
+        /* CLASS KHÓA THANH TRƯỢT KHI ĐANG BẬT TỰ ĐỘNG */
+        .locked {
+            opacity: 0.3;
+            filter: grayscale(100%);
+            pointer-events: none;
+        }
+
+        .luxury-range {
+            -webkit-appearance: none;
+            flex: 1;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            outline: none;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .luxury-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+
+        /* CÔNG TẮC */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #334155;
+            border-radius: 20px;
+            transition: .3s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .3s;
+        }
+
+        input:checked+.slider {
+            background-color: #38bdf8;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+        }
+
+        .switch-light input:checked+.slider {
+            background-color: #fbbf24;
+        }
+
+        /* CHO ĂN THỦ CÔNG (GỘP CHUNG) */
+        .manual-feed-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5vh;
+            padding: 2vh 14px;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 1.5vh;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .btn-blue:disabled {
+            background: #1e293b !important;
+            color: #475569 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            transform: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-blue:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 1.2vh;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .grid-4col {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .btn-tank {
+            padding: 1.5vh 4px;
+            font-size: 12px;
+            font-weight: bold;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-tank:active:not(:disabled) {
+            background: rgba(56, 189, 248, 0.2);
+            transform: scale(0.92);
+        }
+
+        .btn-tank:disabled {
+            opacity: 0.5;
+            border-color: rgba(255, 255, 255, 0.05);
+            color: #64748b;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
+        }
+
+        /* FOOTER */
+        .footer-credits {
+            text-align: center;
+            color: #475569;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 1vh;
+            padding-bottom: 1vh;
+        }
+
+        /* 🔐 MÀN HÌNH ĐĂNG NHẬP */
+        #login-screen {
+            display: none;
+            margin: auto 0;
+            width: 100%;
+        }
+
+        .input-group {
+            margin: 2vh 0;
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1.5vh 35px 1.5vh 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            bottom: 1.2vh;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 🔔 MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 270px;
+            background: #0f172a;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.2s;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00f2fe;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .modal-msg {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #38bdf8, #0284c7);
+            color: #fff;
+        }
+
+        .modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* ĐIỀU CHỈNH LẠI BỐ CỤC DASHBOARD SAU KHI BỎ CAMERA */
+        #dashboard-screen {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 2vh;
+            padding-top: 1vh;
+            overflow-y: auto;
+            /* Cho phép cuộn nhẹ nếu màn hình quá nhỏ */
+        }
+        
+        /* Ẩn thanh cuộn nhưng vẫn cuộn được */
+        #dashboard-screen::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modal-title" class="modal-title">THÔNG BÁO</div>
+            <div id="modal-msg" class="modal-msg">Nội dung...</div>
+            <div id="modal-buttons" class="modal-buttons"></div>
+        </div>
+    </div>
+
+    <div id="loading-screen">
+        <div class="loading-wrapper">
+            <div class="spinner-ring"></div>
+            <img src="logo.png" class="loading-logo" alt="Logo" onerror="this.style.display='none'">
+        </div>
+        <div id="loading-text" class="loading-text">Đang kết nối...</div>
+    </div>
+
+    <div class="ocean-bg">
+        <div class="fish fish-l f1">🐠</div>
+        <div class="fish fish-r f2">🐟</div>
+        <div class="fish fish-l f3">🐡</div>
+    </div>
+
+    <div class="app-container">
+        <div id="login-screen" class="card-box flex-fixed">
+            <div style="text-align: center; margin-bottom: 5px;">
+                <h1 style="margin:0; font-size:15px; color:#00f2fe; font-weight:bold;">QUẢN LÝ HỒ CÁ</h1>
+            </div>
+            <div class="input-group">
+                <label>Mã kết nối (Token)</label>
+                <div style="position: relative;">
+                    <input type="password" id="token-input" placeholder="Nhập mã bí mật...">
+                    <button type="button" class="toggle-password" onclick="toggleTokenVisibility()">👁️</button>
+                </div>
+            </div>
+            <button class="btn-action btn-blue" onclick="validateAndConnect()">XÁC NHẬN KẾT NỐI</button>
+            <button class="btn-action btn-secondary" onclick="window.location.href='config.html'">CÀI ĐẶT WI-FI</button>
+        </div>
+
+        <div id="logout-zone" class="top-nav-zone" style="display: none;">
+            <div id="device-status" class="status-badge offline">
+                <div class="pulse-dot"></div>
+                <span id="status-text-content">OFFLINE</span>
+            </div>
+            <button class="mini-btn danger" onclick="logoutDevice()">ĐĂNG XUẤT</button>
+        </div>
+
+        <div id="dashboard-screen">
+
+            <div class="grid-2col flex-fixed">
+                <div class="card">
+                    <div id="clock">00:00</div>
+                    <div id="date">Thứ ---, 00/00/00</div>
+                </div>
+
+                <div class="card">
+                    <span class="metric-title">Số lần cho ăn tự động</span>
+                    <div style="display: flex; align-items: baseline; margin-top: 4px;">
+                        <span class="metric-value" id="total-feeds">0</span>
+                        <span class="metric-unit"> lần</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-box card-row flex-fixed">
+                <div style="display: flex; flex-direction: column;">
+                    <span class="metric-title" style="color: #fbbf24;">Đèn hồ</span>
+                    <span id="light-status-text" class="status-text status-off">Đang Tắt</span>
+                </div>
+                <label class="switch switch-light">
+                    <input type="checkbox" id="light-switch" onchange="toggleLightMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="card-box manual-feed-group flex-fixed">
+                <div class="section-title" style="margin: 0 0 1vh 0;">Cho ăn thủ công</div>
+                <div class="grid-4col">
+                    <button class="btn-tank" onclick="confirmSingleFeed(8, this, 'Hồ 1')">Hồ 1</button>
+                    <button class="btn-tank" onclick="confirmSingleFeed(9, this, 'Hồ 2')">Hồ 2</button>
+                    <button class="btn-tank" onclick="confirmSingleFeed(10, this, 'Hồ 3')">Hồ 3</button>
+                    <button class="btn-tank" onclick="confirmSingleFeed(11, this, 'Hồ 4')">Hồ 4</button>
+                </div>
+                <button id="btn-manual-feed" class="btn-action btn-blue" style="margin-top: 1vh; padding: 1.5vh;"
+                    onclick="confirmFeedAll()">Tất Cả</button>
+            </div>
+
+            <div class="card-box range-container flex-fixed" style="padding: 2vh 14px;">
+                <div class="section-title" style="margin: 0;">
+                    <span>Cho ăn tự động</span>
+                    <label class="switch">
+                        <input type="checkbox" id="auto-switch" onchange="confirmAutoMode()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="slider-wrapper" id="slider-container">
+                    <div class="slider-value-display"><span id="hour-display">8</span><span
+                            style="font-size: 10px; color:#64748b; margin-left: 2px;"> h/lần</span></div>
+                    <input type="range" id="hour-slider" class="luxury-range" min="1" max="24" value="8"
+                        oninput="updateSliderLabel(this.value)" onchange="sendHourDataToBlynk(this.value)">
+                </div>
+            </div>
+
+            <div class="footer-credits flex-fixed">PHÁT TRIỂN BỞI: CỰU CS5 BLK</div>
+        </div>
+    </div>
+
+    <script>
+        let BLYNK_TOKEN = "";
+        const BLYNK_BASE_URL = `https://sgp1.blynk.cloud/external/api`;
+        let syncIntervalId = null;
+        let isUserDraggingSlider = false;
+
+        let elTotalFeeds, elLightSwitch, elLightText, elAutoSwitch, elHourSlider, elHourDisplay, elLoader, elLoginScreen, elDashboardScreen, elLogoutZone, elLoadText, elBtnManualFeed, elDeviceStatus, elStatusTextContent;
+
+        function initDOMCache() {
+            elTotalFeeds = document.getElementById('total-feeds');
+            elLightSwitch = document.getElementById('light-switch');
+            elLightText = document.getElementById('light-status-text');
+            elAutoSwitch = document.getElementById('auto-switch');
+            elHourSlider = document.getElementById('hour-slider');
+            elHourDisplay = document.getElementById('hour-display');
+            elLoader = document.getElementById("loading-screen");
+            elLoginScreen = document.getElementById("login-screen");
+            elDashboardScreen = document.getElementById("dashboard-screen");
+            elLogoutZone = document.getElementById("logout-zone");
+            elLoadText = document.getElementById("loading-text");
+            elBtnManualFeed = document.getElementById("btn-manual-feed");
+            elDeviceStatus = document.getElementById("device-status");
+            elStatusTextContent = document.getElementById("status-text-content");
+        }
+
+        // --- GIAO DIỆN CẢNH BÁO / MODAL ---
+        function showCustomAlert(title, message) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerText = message;
+            document.getElementById('modal-buttons').innerHTML = `<button class="modal-btn modal-btn-confirm" onclick="closeCustomModal()">OK, ĐÃ HIỂU</button>`;
+            document.getElementById('custom-modal').classList.add('active');
+        }
+
+        function showCustomConfirm(title, message, onConfirmCallback, onCancelCallback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerText = message;
+            document.getElementById('modal-buttons').innerHTML = `<button class="modal-btn modal-btn-cancel" id="modal-cancel-btn">HỦY BỎ</button><button class="modal-btn modal-btn-confirm" id="modal-confirm-action">XÁC NHẬN</button>`;
+            document.getElementById('custom-modal').classList.add('active');
+
+            document.getElementById('modal-confirm-action').onclick = function () {
+                closeCustomModal();
+                if (onConfirmCallback) onConfirmCallback();
+            };
+
+            document.getElementById('modal-cancel-btn').onclick = function () {
+                closeCustomModal();
+                if (onCancelCallback) onCancelCallback();
+            };
+        }
+
+        function closeCustomModal() { document.getElementById('custom-modal').classList.remove('active'); }
+
+        // --- ĐĂNG NHẬP ---
+        function checkAppAccess() {
+            initDOMCache();
+            BLYNK_TOKEN = localStorage.getItem("LOCAL_USER_TOKEN");
+            elLoadText.innerText = "Kiểm tra kết nối...";
+            elLoader.style.display = "flex"; elLoader.style.opacity = "1";
+
+            setTimeout(() => {
+                elLoader.style.opacity = "0";
+                setTimeout(() => {
+                    elLoader.style.display = "none";
+                    if (BLYNK_TOKEN && BLYNK_TOKEN !== "null" && BLYNK_TOKEN.trim() !== "") {
+                        elLoginScreen.style.display = "none";
+                        elDashboardScreen.style.display = "flex";
+                        elLogoutZone.style.display = "flex";
+                        startDashboard();
+                    } else {
+                        elLoginScreen.style.display = "block";
+                        document.getElementById("token-input").value = "";
+                        elDashboardScreen.style.display = "none";
+                        elLogoutZone.style.display = "none";
+                        if (syncIntervalId) clearInterval(syncIntervalId);
+                    }
+                }, 400);
+            }, 800);
+        }
+
+        function validateAndConnect() {
+            const inputVal = document.getElementById("token-input").value.trim();
+            if (inputVal === "") { showCustomAlert("LỖI ĐĂNG NHẬP", "Bạn chưa nhập mã Token!"); return; }
+
+            elLoadText.innerText = "Đang xác thực...";
+            elLoader.style.display = "flex"; elLoader.style.opacity = "1";
+
+            fetch(`${BLYNK_BASE_URL}/get?token=${inputVal}&V3`).then(res => res.text()).then(data => {
+                if (data.includes("Invalid token") || data.includes("Error") || data.trim() === "") throw new Error("Invalid");
+                localStorage.setItem("LOCAL_USER_TOKEN", inputVal);
+                BLYNK_TOKEN = inputVal;
+
+                elLoader.style.opacity = "0";
+                setTimeout(() => {
+                    elLoader.style.display = "none";
+                    elLoginScreen.style.display = "none";
+                    elDashboardScreen.style.display = "flex";
+                    elLogoutZone.style.display = "flex";
+                    startDashboard();
+                }, 400);
+            }).catch(() => {
+                elLoader.style.display = "none";
+                showCustomAlert("TỪ CHỐI", "Mã Token không hợp lệ. Vui lòng kiểm tra lại!");
+            });
+        }
+
+        function toggleTokenVisibility() {
+            const tokenInput = document.getElementById("token-input");
+            tokenInput.type = (tokenInput.type === "password") ? "text" : "password";
+        }
+
+        function logoutDevice() {
+            showCustomConfirm("ĐĂNG XUẤT", "Ngắt kết nối hệ thống hiện tại?", function () {
+                localStorage.removeItem("LOCAL_USER_TOKEN"); checkAppAccess();
+            });
+        }
+
+        // --- DASHBOARD ---
+        function startDashboard() {
+            initClock();
+            syncBlynkData();
+            if (syncIntervalId) clearInterval(syncIntervalId);
+            // 150 giây/lần an toàn tài khoản
+            syncIntervalId = setInterval(syncBlynkData, 150000);
+        }
+
+        function initClock() {
+            const elClock = document.getElementById('clock');
+            const elDate = document.getElementById('date');
+            const days = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+            const updateClock = () => {
+                const now = new Date();
+                elClock.innerText = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                elDate.innerText = `${days[now.getDay()]}, ${now.toLocaleDateString('vi-VN')}`;
+            };
+            setInterval(updateClock, 1000); updateClock();
+        }
+
+        // --- CÁC HÀM XÁC NHẬN TRƯỚC KHI CHO ĂN LẺ ---
+        function confirmFeedAll() {
+            showCustomConfirm("XÁC NHẬN", "Bạn có chắc chắn muốn xả thức ăn cho TẤT CẢ 4 HỒ không?", function () {
+                triggerFeedAll();
+            });
+        }
+
+        function confirmSingleFeed(pinNumber, btnElement, tankName) {
+            showCustomConfirm("XÁC NHẬN", `Bạn có chắc chắn muốn xả thức ăn cho ${tankName} không?`, function () {
+                feedSingleTank(pinNumber, btnElement);
+            });
+        }
+
+        // --- XÁC NHẬN TRƯỚC KHI BẬT/TẮT TỰ ĐỘNG ---
+        function confirmAutoMode() {
+            const isChecked = elAutoSwitch.checked;
+            const actionText = isChecked ? "BẬT" : "TẮT";
+
+            showCustomConfirm(
+                "CHẾ ĐỘ TỰ ĐỘNG",
+                `Bạn có chắc chắn muốn ${actionText} chế độ cho ăn tự động không?`,
+                function () {
+                    fetch(`${BLYNK_BASE_URL}/update?token=${BLYNK_TOKEN}&V1=${isChecked ? 1 : 0}`);
+                    setSliderLockState(isChecked);
+                },
+                function () {
+                    elAutoSwitch.checked = !isChecked;
+                }
+            );
+        }
+
+        // --- NÚT BẤM CHO CÁ ĂN THỰC TẾ ---
+        function triggerFeedAll() {
+            fetch(`${BLYNK_BASE_URL}/update?token=${BLYNK_TOKEN}&V2=1`);
+            elBtnManualFeed.disabled = true;
+            let cooldownTime = 12;
+            elBtnManualFeed.innerText = `Đang xả (${cooldownTime}s)...`;
+            const cooldownInterval = setInterval(() => {
+                cooldownTime--;
+                if (cooldownTime > 0) { elBtnManualFeed.innerText = `Đang xả (${cooldownTime}s)...`; }
+                else { clearInterval(cooldownInterval); elBtnManualFeed.disabled = false; elBtnManualFeed.innerText = "Tất Cả"; }
+            }, 1000);
+        }
+
+        function feedSingleTank(pinNumber, btnElement) {
+            fetch(`${BLYNK_BASE_URL}/update?token=${BLYNK_TOKEN}&V${pinNumber}=1`);
+            const originalText = btnElement.innerText;
+            btnElement.disabled = true; btnElement.innerText = "Đang xả";
+            setTimeout(() => { btnElement.disabled = false; btnElement.innerText = originalText; }, 2500);
+        }
+
+        // --- XỬ LÝ KHÓA THANH TRƯỢT ---
+        function setSliderLockState(isLocked) {
+            const container = document.getElementById('slider-container');
+            if (isLocked) {
+                container.classList.add('locked');
+                elHourSlider.disabled = true;
+            } else {
+                container.classList.remove('locked');
+                elHourSlider.disabled = false;
+            }
+        }
+
+        function updateSliderLabel(val) { isUserDraggingSlider = true; elHourDisplay.innerText = val; }
+        function sendHourDataToBlynk(val) { isUserDraggingSlider = false; fetch(`${BLYNK_BASE_URL}/update?token=${BLYNK_TOKEN}&V0=${val}`); }
+
+        function toggleLightMode() {
+            const isLightOn = elLightSwitch.checked;
+            fetch(`${BLYNK_BASE_URL}/update?token=${BLYNK_TOKEN}&V4=${isLightOn ? 1 : 0}`);
+            if (isLightOn) {
+                elLightText.innerText = "Đang Bật"; elLightText.className = "status-text status-on";
+            } else {
+                elLightText.innerText = "Đang Tắt"; elLightText.className = "status-text status-off";
+            }
+        }
+
+        // --- ĐỒNG BỘ NỀN (150s/lần) ---
+        function syncBlynkData() {
+            fetch(`${BLYNK_BASE_URL}/isHardwareConnected?token=${BLYNK_TOKEN}`).then(res => res.text()).then(data => {
+                if (data === "true") { elStatusTextContent.innerText = "ONLINE"; elDeviceStatus.className = "status-badge online"; }
+                else { elStatusTextContent.innerText = "OFFLINE"; elDeviceStatus.className = "status-badge offline"; }
+            }).catch(() => { elStatusTextContent.innerText = "OFFLINE"; elDeviceStatus.className = "status-badge offline"; });
+
+            fetch(`${BLYNK_BASE_URL}/get?token=${BLYNK_TOKEN}&V3`).then(res => res.text()).then(data => {
+                if (data.trim() !== "" && !isNaN(data)) elTotalFeeds.innerText = data.trim();
+            });
+
+            fetch(`${BLYNK_BASE_URL}/get?token=${BLYNK_TOKEN}&V5`).then(res => res.text()).then(data => {
+                const state = data.trim();
+                if (state === "255" || state === "1") { elLightSwitch.checked = true; elLightText.innerText = "Đang Bật"; elLightText.className = "status-text status-on"; }
+                else if (state === "0") { elLightSwitch.checked = false; elLightText.innerText = "Đang Tắt"; elLightText.className = "status-text status-off"; }
+            });
+
+            fetch(`${BLYNK_BASE_URL}/get?token=${BLYNK_TOKEN}&V1`).then(res => res.text()).then(data => {
+                const isAuto = (data.trim() === "1");
+                elAutoSwitch.checked = isAuto;
+                setSliderLockState(isAuto);
+            });
+
+            if (!isUserDraggingSlider) {
+                fetch(`${BLYNK_BASE_URL}/get?token=${BLYNK_TOKEN}&V0`).then(res => res.text()).then(data => {
+                    if (data.trim() !== "" && !isNaN(data)) {
+                        const val = parseInt(data.trim()); elHourSlider.value = val; elHourDisplay.innerText = val;
+                    }
+                });
+            }
+        }
+
+        window.onload = checkAppAccess;
+    </script>
+</body>
+
+</html>
